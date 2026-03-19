@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <style>
+.card {
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Motorista</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background-color: #f1f3f5; font-family: Arial, sans-serif; }
+  .card { margin-bottom: 1rem; border-radius: 12px; }
+  .btn { font-weight: bold; }
+  .table-responsive { overflow-x: auto; }
+  h2 { font-weight: bold; }
+  .card-header { font-weight: bold; font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+  <body style="
+background: linear-gradient(135deg, #0d6efd, #6610f2);
+min-height: 100vh;
+color: white;
+">
+
+<div class="container py-4">
+
+  <!-- Login / Registro -->
+  <div id="authForms">
+
+    <!-- Login -->
+    <div class="card">
+      <div class="card-header text-center">Login Motorista</div>
+      <div class="card-body">
+        <form id="loginForm">
+          <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+          <input type="password" class="form-control mb-2" name="senha" placeholder="Senha" required>
+          <button type="submit" class="btn btn-primary w-100 btn-lg">Entrar</button>
+        </form>
+        <p class="mt-2 text-center">ou <a href="#" onclick="showRegister()">Registrar</a></p>
+      </div>
+    </div>
+
+    <!-- Registro -->
+    <div class="card d-none" id="registerCard">
+      <div class="card-header text-center">Cadastro Motorista</div>
+      <div class="card-body">
+        <form id="registerForm">
+          <input type="text" class="form-control mb-2" name="nome" placeholder="Nome" required>
+          <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+          <input type="password" class="form-control mb-2" name="senha" placeholder="Senha" required>
+          <button type="submit" class="btn btn-success w-100 btn-lg">Registrar</button>
+        </form>
+        <p class="mt-2 text-center">ou <a href="#" onclick="showLogin()">Login</a></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Painel -->
+  <div id="painel" class="d-none">
+    <h2 class="mb-3 text-center">Painel do Motorista</h2>
+    <button class="btn btn-secondary mb-3 w-100" onclick="logout()">Sair</button>
+
+    <!-- Resumo -->
+    <div class="row mb-3">
+      <div class="col-12 col-md-4 mb-2">
+        <div class="card p-3 text-center bg-success text-white"><strong>Total Ganhos:</strong><br>R$ <span id="totalGanhos">0</span></div>
+      </div>
+      <div class="col-12 col-md-4 mb-2">
+        <div class="card p-3 text-center bg-danger text-white"><strong>Total Gastos:</strong><br>R$ <span id="totalGastos">0</span></div>
+      </div>
+      <div class="col-12 col-md-4 mb-2">
+        <div class="card p-3 text-center bg-info text-white"><strong>Lucro:</strong><br>R$ <span id="lucro">0</span></div>
+      </div>
+    </div>
+
+    <!-- Forms Ganho / Gasto -->
+    <div class="row mb-3">
+      <div class="col-12 mb-2">
+        <div class="card">
+          <div class="card-header">Adicionar Ganho</div>
+          <div class="card-body">
+            <form id="formGanho">
+              <input type="date" class="form-control mb-2" name="data" required>
+              <input type="text" class="form-control mb-2" name="app" placeholder="Aplicativo" required>
+              <input type="number" class="form-control mb-2" name="valor" placeholder="Valor" required>
+              <button type="submit" class="btn btn-success w-100 btn-lg">Adicionar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 mb-2">
+        <div class="card">
+          <div class="card-header">Adicionar Gasto</div>
+          <div class="card-body">
+            <form id="formGasto">
+              <input type="date" class="form-control mb-2" name="data" required>
+              <input type="text" class="form-control mb-2" name="tipo" placeholder="Tipo de gasto" required>
+              <input type="number" class="form-control mb-2" name="valor" placeholder="Valor" required>
+              <button type="submit" class="btn btn-danger w-100 btn-lg">Adicionar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabelas -->
+    <div class="row">
+      <div class="col-12 mb-3">
+        <div class="card">
+          <div class="card-header">Ganhos</div>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0" id="tabelaGanhos">
+              <thead><tr><th>Data</th><th>App</th><th>Valor</th><th>Ações</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 mb-3">
+        <div class="card">
+          <div class="card-header">Gastos</div>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0" id="tabelaGastos">
+              <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const baseURL = window.location.origin; // Usa mesmo domínio que hospeda o app
+let token = null;
+
+function showRegister(){ document.getElementById("authForms").querySelectorAll("div.card").forEach(c=>c.classList.add("d-none")); document.getElementById("registerCard").classList.remove("d-none"); }
+function showLogin(){ document.getElementById("authForms").querySelectorAll("div.card").forEach(c=>c.classList.add("d-none")); document.querySelector("#authForms > div.card").classList.remove("d-none"); }
+function logout(){ token=null; document.getElementById("painel").classList.add("d-none"); document.getElementById("authForms").classList.remove("d-none"); }
+
+// Login
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  try{
+    const res = await fetch(baseURL+"/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+    const json = await res.json();
+    if(res.ok){ token=json.token; document.getElementById("authForms").classList.add("d-none"); document.getElementById("painel").classList.remove("d-none"); atualizarPainel(); }
+    else alert(json.erro);
+  }catch(err){ console.error(err); alert("Erro no login"); }
+});
+
+// Registro
+document.getElementById("registerForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  try{
+    const res = await fetch(baseURL+"/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+    const json = await res.json();
+    if(res.ok){ alert(json.message); showLogin(); }
+    else alert(json.erro);
+  }catch(err){ console.error(err); alert("Erro no registro"); }
+});
+
+// Atualizar painel
+async function atualizarPainel(){
+  try{
+    const ganhosRes = await fetch(baseURL+"/ganhos",{headers:{Authorization:"Bearer "+token}});
+    const gastosRes = await fetch(baseURL+"/gasto",{headers:{Authorization:"Bearer "+token}});
+    const ganhos = await ganhosRes.json();
+    const gastos = await gastosRes.json();
+
+    const totalGanhos = ganhos.reduce((acc,g)=>acc+g.valor,0);
+    const totalGastos = gastos.reduce((acc,g)=>acc+g.valor,0);
+    const lucro = totalGanhos-totalGastos;
+
+    document.getElementById("totalGanhos").innerText = totalGanhos.toFixed(2);
+    document.getElementById("totalGastos").innerText = totalGastos.toFixed(2);
+    document.getElementById("lucro").innerText = lucro.toFixed(2);
+
+    const tbodyG = document.querySelector("#tabelaGanhos tbody"); tbodyG.innerHTML="";
+    ganhos.forEach(g=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${new Date(g.data).toLocaleDateString()}</td><td>${g.app}</td><td>${g.valor.toFixed(2)}</td><td><button class="btn btn-sm btn-danger w-100" onclick="deletarGanho('${g._id}')">Excluir</button></td>`;
+      tbodyG.appendChild(tr);
+    });
+
+    const tbodyE = document.querySelector("#tabelaGastos tbody"); tbodyE.innerHTML="";
+    gastos.forEach(g=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${new Date(g.data).toLocaleDateString()}</td><td>${g.tipo}</td><td>${g.valor.toFixed(2)}</td><td><button class="btn btn-sm btn-danger w-100" onclick="deletarGasto('${g._id}')">Excluir</button></td>`;
+      tbodyE.appendChild(tr);
+    });
+
+  }catch(err){ console.error(err); }
+}
+
+document.getElementById("formGanho").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.valor=parseFloat(data.valor);
+  await fetch(baseURL+"/ganhos",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(data)});
+  e.target.reset(); atualizarPainel();
+});
+
+document.getElementById("formGasto").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.valor=parseFloat(data.valor);
+  await fetch(baseURL+"/gasto",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(data)});
+  e.target.reset(); atualizarPainel();
+});
+
+async function deletarGanho(id){ await fetch(baseURL+"/ganhos/"+id,{method:"DELETE",headers:{Authorization:"Bearer "+token}}); atualizarPainel();}
+async function deletarGasto(id){ await fetch(baseURL+"/gasto/"+id,{method:"DELETE",headers:{Authorization:"Bearer "+token}}); atualizarPainel();}
+</script>
+
+</body>
+</html>
